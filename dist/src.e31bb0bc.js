@@ -30659,7 +30659,7 @@ function (_Component) {
     value: function render() {
       return _react.default.createElement("div", {
         className: "divtimer"
-      }, !this.props.intervalstate ? "work" : "pause", _react.default.createElement("br", null), "".concat(this.props.format(this.props.time)));
+      }, this.props.text, _react.default.createElement("br", null), "".concat(this.props.format(this.props.time)));
     }
   }]);
 
@@ -30838,15 +30838,33 @@ var _reactDom = _interopRequireDefault(require("react-dom"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var JSX_MODAL = _react.default.createElement("div", {
-  className: "ui dimmer modals visible active"
-}, _react.default.createElement("div", {
-  className: "ui standard modal visible active"
-}, "THIS IS SOME TEXT IN THE MODAL // add some UI features here"));
+var Modol = function Modol(props) {
+  if (props.show) {
+    return _react.default.createElement("div", {
+      className: "blankScreen"
+    }, _react.default.createElement("div", {
+      className: "ModalDiv"
+    }, _react.default.createElement("div", {
+      className: "ModalDivText"
+    }, "take a break."), _react.default.createElement("div", {
+      className: "ModalDivButton"
+    }, _react.default.createElement("button", {
+      type: "button",
+      onClick: props.handleClose
+    }, "close"), _react.default.createElement("button", {
+      type: "button",
+      onClick: props.handleRelaunch
+    }, "new timer"), _react.default.createElement("button", {
+      type: "button",
+      onClick: props.handleLaunchBreak
+    }, "5 minutes break"))));
+  }
+
+  return null;
+};
 
 function Modal(props) {
-  console.log("modaaaaaaaaaaaaaaaale");
-  return _reactDom.default.createPortal(JSX_MODAL, document.querySelector("body"));
+  return _reactDom.default.createPortal(Modol(props), document.querySelector("body"));
 }
 
 var _default = Modal;
@@ -30860,8 +30878,6 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
-
-var _reactDom = _interopRequireDefault(require("react-dom"));
 
 var _displaytimecomponent = _interopRequireDefault(require("./Component/displaytimecomponent"));
 
@@ -30919,14 +30935,18 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(app).call(this));
     _this.state = {
-      time: 0
+      time: 0,
+      text: "pause",
+      show: false
     };
     _this.onLaunch = _this.onLaunch.bind(_assertThisInitialized(_this));
     _this.onAddTime = _this.onAddTime.bind(_assertThisInitialized(_this));
     _this.onRemoveTime = _this.onRemoveTime.bind(_assertThisInitialized(_this));
     _this.onReset = _this.onReset.bind(_assertThisInitialized(_this));
-    _this.onTimerZero = _this.onTimerZero.bind(_assertThisInitialized(_this));
+    _this.onModalClose = _this.onModalClose.bind(_assertThisInitialized(_this));
     _this.onStop = _this.onStop.bind(_assertThisInitialized(_this));
+    _this.onLaunchBreak = _this.onLaunchBreak.bind(_assertThisInitialized(_this));
+    _this.onRelaunchTimerWithModalClose = _this.onRelaunchTimerWithModalClose.bind(_assertThisInitialized(_this));
     _this.audiofinish = new Audio(_travailterminer.default);
     return _this;
   }
@@ -30945,6 +30965,11 @@ function (_Component) {
           });
         }
 
+        this.setState(function () {
+          return {
+            text: "work"
+          };
+        });
         this.timerIntervale = setInterval(function () {
           if (_this2.state.time <= 0) {
             clearInterval(_this2.timerIntervale);
@@ -30952,13 +30977,13 @@ function (_Component) {
 
             _this2.setState(function () {
               return {
-                time: 0
+                time: 0,
+                show: true,
+                text: "pause"
               };
             });
 
             _this2.audiofinish.play();
-
-            _this2.onTimerZero();
           } else {
             _this2.setState(function (prevState) {
               return {
@@ -30970,11 +30995,53 @@ function (_Component) {
       }
     }
   }, {
+    key: "onLaunchBreak",
+    value: function onLaunchBreak() {
+      var _this3 = this;
+
+      this.onModalClose();
+
+      if (!this.timerIntervale || this.timerIntervale == null) {
+        if (this.state.time <= 0) {
+          this.setState(function () {
+            return {
+              time: 5 * 60,
+              text: "break"
+            };
+          });
+        }
+
+        this.timerIntervale = setInterval(function () {
+          if (_this3.state.time <= 0) {
+            clearInterval(_this3.timerIntervale);
+            _this3.timerIntervale = null;
+
+            _this3.setState(function () {
+              return {
+                time: 0,
+                show: true,
+                text: "pause"
+              };
+            });
+
+            _this3.audiofinish.play();
+          } else {
+            _this3.setState(function (prevState) {
+              return {
+                time: prevState.time - 1
+              };
+            });
+          }
+        }, 1000);
+      }
+    }
+  }, {
     key: "onReset",
     value: function onReset() {
       this.setState(function () {
         return {
-          time: 0
+          time: 0,
+          text: "pause"
         };
       });
     }
@@ -30995,7 +31062,8 @@ function (_Component) {
         this.timerIntervale = null;
         this.setState(function () {
           return {
-            time: 0
+            time: 0,
+            text: "pause"
           };
         });
       } else {
@@ -31014,15 +31082,26 @@ function (_Component) {
         this.timerIntervale = null;
         this.setState(function (prevState) {
           return {
-            time: prevState.time
+            time: prevState.time,
+            text: "pause"
           };
         });
       }
     }
   }, {
-    key: "onTimerZero",
-    value: function onTimerZero() {
-      (0, _modal.default)();
+    key: "onModalClose",
+    value: function onModalClose() {
+      this.setState(function () {
+        return {
+          show: false
+        };
+      });
+    }
+  }, {
+    key: "onRelaunchTimerWithModalClose",
+    value: function onRelaunchTimerWithModalClose() {
+      this.onModalClose();
+      this.onLaunch();
     }
   }, {
     key: "render",
@@ -31030,7 +31109,8 @@ function (_Component) {
       return _react.default.createElement("div", null, _react.default.createElement(_displaytimecomponent.default, {
         time: this.state.time,
         format: formatTime,
-        intervalstate: !this.timerIntervale
+        intervalstate: !this.timerIntervale,
+        text: this.state.text
       }), _react.default.createElement("br", null), _react.default.createElement(_buttoncomponent.default, {
         handleLaunch: this.onLaunch,
         handleAdd: this.onAddTime,
@@ -31039,6 +31119,11 @@ function (_Component) {
         handleStop: this.onStop,
         time: this.state.time,
         intervalstate: !this.timerIntervale
+      }), _react.default.createElement(_modal.default, {
+        show: this.state.show,
+        handleClose: this.onModalClose,
+        handleRelaunch: this.onRelaunchTimerWithModalClose,
+        handleLaunchBreak: this.onLaunchBreak
       }));
     }
   }]);
@@ -31047,7 +31132,7 @@ function (_Component) {
 }(_react.Component);
 
 exports.default = app;
-},{"react":"node_modules/react/index.js","react-dom":"node_modules/react-dom/index.js","./Component/displaytimecomponent":"Component/displaytimecomponent.js","./Component/buttoncomponent":"Component/buttoncomponent.js","./css/materialize.css":"css/materialize.css","./sound/travailterminer.mp3":"sound/travailterminer.mp3","./Component/modal":"Component/modal.js"}],"index.js":[function(require,module,exports) {
+},{"react":"node_modules/react/index.js","./Component/displaytimecomponent":"Component/displaytimecomponent.js","./Component/buttoncomponent":"Component/buttoncomponent.js","./css/materialize.css":"css/materialize.css","./sound/travailterminer.mp3":"sound/travailterminer.mp3","./Component/modal":"Component/modal.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 var _react = _interopRequireDefault(require("react"));
@@ -31060,7 +31145,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 //import React from 'react'
 _reactDom.default.render(_react.default.createElement(_app.default, null), document.querySelector("#app"));
-},{"react":"node_modules/react/index.js","react-dom":"node_modules/react-dom/index.js","./app":"app.js"}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"react":"node_modules/react/index.js","react-dom":"node_modules/react-dom/index.js","./app":"app.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -31088,7 +31173,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61022" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50001" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -31263,5 +31348,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
-//# sourceMappingURL=/React-Pomodoro.e31bb0bc.js.map
+},{}]},{},["../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
+//# sourceMappingURL=/src.e31bb0bc.js.map

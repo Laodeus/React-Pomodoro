@@ -9,7 +9,7 @@ export default class Displaytimecomponent extends Component {
     render() {
         return (
             <div className={`divtimer`}>
-                {!this.props.intervalstate ? "work" : "pause"}
+                {this.props.text}
                 <br />
                 {`${this.props.format(this.props.time)}`}
             </div>

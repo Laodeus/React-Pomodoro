@@ -3,6 +3,7 @@ import Displaytimecomponent from "./Component/displaytimecomponent";
 import ButtonComponent from "./Component/buttoncomponent";
 import "./css/materialize.css";
 import finishedSound from "./sound/travailterminer.mp3";
+import Modal from "./Component/modal";
 
 const formatTime = time => {
     let formatedTime = "";
@@ -23,12 +24,20 @@ export default class app extends Component {
         super();
         this.state = {
             time: 0,
+            text: `pause`,
+            show: false,
         };
 
         this.onLaunch = this.onLaunch.bind(this);
         this.onAddTime = this.onAddTime.bind(this);
         this.onRemoveTime = this.onRemoveTime.bind(this);
         this.onReset = this.onReset.bind(this);
+        this.onModalClose = this.onModalClose.bind(this);
+        this.onStop = this.onStop.bind(this);
+        this.onLaunchBreak = this.onLaunchBreak.bind(this);
+        this.onRelaunchTimerWithModalClose = this.onRelaunchTimerWithModalClose.bind(
+            this,
+        );
         this.audiofinish = new Audio(finishedSound);
     }
 
@@ -39,6 +48,9 @@ export default class app extends Component {
                     time: 25 * 60,
                 }));
             }
+            this.setState(() => ({
+                text: `work`,
+            }));
 
             this.timerIntervale = setInterval(() => {
                 if (this.state.time <= 0) {
@@ -46,8 +58,9 @@ export default class app extends Component {
                     this.timerIntervale = null;
                     this.setState(() => ({
                         time: 0,
+                        show: true,
+                        text: `pause`,
                     }));
-
                     this.audiofinish.play();
                 } else {
                     this.setState(prevState => ({
@@ -58,9 +71,39 @@ export default class app extends Component {
         }
     }
 
+    onLaunchBreak() {
+        this.onModalClose();
+        if (!this.timerIntervale || this.timerIntervale == null) {
+            if (this.state.time <= 0) {
+                this.setState(() => ({
+                    time: 5 * 60,
+                    text: `break`,
+                }));
+            }
+
+            this.timerIntervale = setInterval(() => {
+                if (this.state.time <= 0) {
+                    clearInterval(this.timerIntervale);
+                    this.timerIntervale = null;
+                    this.setState(() => ({
+                        time: 0,
+                        show: true,
+                        text: `pause`,
+                    }));
+                    this.audiofinish.play();
+                } else {
+                    this.setState(prevState => ({
+                        time: prevState.time - 1,
+                    }));
+                }
+            }, 1000);
+        }
+    }
+
     onReset() {
         this.setState(() => ({
             time: 0,
+            text: "pause",
         }));
     }
 
@@ -72,19 +115,39 @@ export default class app extends Component {
 
     onRemoveTime() {
         if (this.state.time <= 0 || this.timerIntervale === null) {
-            if (this.timerIntervale) {
-                this.audiofinish.play();
-            }
             clearInterval(this.timerIntervale);
             this.timerIntervale = null;
             this.setState(() => ({
                 time: 0,
+                text: "pause",
             }));
         } else {
             this.setState(prevState => ({
                 time: prevState.time - 60,
             }));
         }
+    }
+
+    onStop() {
+        if (this.timerIntervale !== null) {
+            clearInterval(this.timerIntervale);
+            this.timerIntervale = null;
+            this.setState(prevState => ({
+                time: prevState.time,
+                text: "pause",
+            }));
+        }
+    }
+
+    onModalClose() {
+        this.setState(() => ({
+            show: false,
+        }));
+    }
+
+    onRelaunchTimerWithModalClose() {
+        this.onModalClose();
+        this.onLaunch();
     }
 
     render() {
@@ -94,6 +157,7 @@ export default class app extends Component {
                     time={this.state.time}
                     format={formatTime}
                     intervalstate={!this.timerIntervale}
+                    text={this.state.text}
                 />
                 <br />
                 <ButtonComponent
@@ -101,8 +165,15 @@ export default class app extends Component {
                     handleAdd={this.onAddTime}
                     handleRemove={this.onRemoveTime}
                     handleReset={this.onReset}
+                    handleStop={this.onStop}
                     time={this.state.time}
                     intervalstate={!this.timerIntervale}
+                />
+                <Modal
+                    show={this.state.show}
+                    handleClose={this.onModalClose}
+                    handleRelaunch={this.onRelaunchTimerWithModalClose}
+                    handleLaunchBreak={this.onLaunchBreak}
                 />
             </div>
         );

@@ -5,7 +5,6 @@ export default class ButtonComponent extends Component {
         super(props);
         this.props = props;
     }
-
     render() {
         const launchButton = this.props.intervalstate ? (
             <button
@@ -31,6 +30,11 @@ export default class ButtonComponent extends Component {
                     {`remove`}
                 </button>
             ) : null;
+        const stopButton = this.props.intervalstate ? null: (
+            <button type={"button"} onClick={this.props.handleStop}>
+                {`stop`}
+            </button>
+        );
         const addButton = this.props.intervalstate ? (
             <button type={"button"} onClick={this.props.handleAdd}>
                 {`add`}
@@ -40,6 +44,8 @@ export default class ButtonComponent extends Component {
             <div>
                 {resetButton}
                 {launchButton}
+                {stopButton}
+                <br />
                 {removeButton}
                 {addButton}
             </div>

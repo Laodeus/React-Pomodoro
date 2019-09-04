@@ -1,6 +1,6 @@
 //import React from 'react'
 import React from "react";
-import reactrom from "react-dom";
-import app from "../app";
+import ReactDOM from "react-dom";
+import App from "./app";
 
-reactrom.render(<app />, document.querySelector("app"));
+ReactDOM.render(<App />, document.querySelector("#app"));
