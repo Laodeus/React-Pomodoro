@@ -67,7 +67,7 @@ export default class app extends Component {
                         time: prevState.time - 1,
                     }));
                 }
-            }, 10);
+            }, 1000);
         }
     }
 
